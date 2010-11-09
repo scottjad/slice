@@ -69,13 +69,17 @@
 (slice header [text]
   (html [:h1 {:class headers*} text]))
 
+(defn div [sl]
+  (update-html [h (fslice sl)]
+               [:div h]))
+
 (slice site-header
   (mouse-effect logo-id*)
-  (update-html [h (header company-name*)] [:div h])
+  (div (header company-name*))
   (css (rule logo-id* big-text*))) 
 
 (slice app-section
-  (update-html [h (header app-name*)] [:div h])
+  (div (header app-name*))
   download-button)
 
 (slice main-page
@@ -88,4 +92,4 @@
 
 ;; (defroutes foo
 ;;   (GET "/" _ (render main-page))
-;;   (GET "/subscribe" _ (render subscribe-button)))
+;;   (GET "/subscribe" _ (render (slices site-header subscribe-button)))

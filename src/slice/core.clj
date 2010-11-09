@@ -57,34 +57,16 @@
   [s]
   {:title [s]})
 
-(defn merge-slices
+(defn fslice [sl]
+  (if (fn? sl) (sl) sl))
+
+(defn slices
   "Combine slice parts with concat keeping them as vectors"
   [& maps]
   (-> (apply merge-with concat
              (map #(dissoc % :slice)
-                  (map #(if (fn? %) (%) %)
-                       maps)))
+                  (map fslice maps)))
       (assoc :slice true)))
-
-;;; adopted from hiccup
-(defn add-optional-map-arg
-  "Add an optional map argument to a function that returns merges it with normal result"
-  [func]
-  (fn [& args]
-    (if (and (map? (first args)) (:slice (first args)))
-      (let [old (first args)
-            new (apply func (rest args))]
-        (assert (map? old))
-        (assert (map? new))
-        (merge-slices old new))
-      (apply func args))))
-
-(defmacro defelem
-  "needs better name, comes hiccup, decorates a function"
-  [name & fdecl]
-  `(do (defn ~name ~@fdecl)
-       (alter-var-root (var ~name) add-optional-map-arg)
-       (var ~name)))
 
 (defmacro slice
   "Defines a slice. Slices are functions that have been decorated to take an
@@ -93,13 +75,13 @@
   should return a map"
   [name args & body]
   (if (vector? args)
-    `(defelem ~name ~args (merge-slices ~@body))
-    `(defelem ~name [] (merge-slices ~args ~@body))))
+    `(defn ~name ~args (slices ~@body))
+    `(defn ~name [] (slices ~args ~@body))))
 
 (defn render [sl]
   ;; TODO make optional and fix so works > 31 elements where #{} ain't sorted
   (let [unique #(into #{} %)
-        {:keys [title html css js dom head]} (if (fn? sl) (sl) sl)]
+        {:keys [title html css js dom head]} (fslice sl)]
     (hiccup/html
      [:html
       (when (or title head)
@@ -119,3 +101,4 @@
 
 (defmacro update-html [[name sl] & body]
   `(update-in ~sl [:html] (fn [html#] (let [~name html#] (:html (html ~@body))))))
+

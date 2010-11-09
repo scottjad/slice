@@ -4,6 +4,8 @@ Write composable slices of html, css, and js in Clojure.
 
 Not production-ready. I haven't even looked at the output in a browser :)
 
+Slice uses Scriptjure, Hiccup, and Cssgen for the hard stuff.
+
 ## Motivation
 
 I've been writing webapps entirely in Clojure for some time, using scriptjure
@@ -38,7 +40,7 @@ A slice is a function that returns a map with keys such as :title, :html, :css,
 One difference between slices and normal functions is that the return value of
 every form in the body of a slice will be added to the map returned. So in the
 example above, none of the forms have side effects but css is not the only form
-included in the map returned. See Implementation.
+included in the map returned.
 
 Another difference is that when defining a slice that doesn't take any args
 like example above the arg list can be ommited. Also when calling slices that
@@ -75,17 +77,13 @@ See [example.clj](https://github.com/scottjad/slice/blob/master/src/slice/exampl
 - If you're not passing any arguments to a slice, you can omit the enclosing ()
   in render and other slices that use the slice.
 
-- You can stack titles
+- You can stack titles.
 
 - Dependencies will only be included once.
 
-## Implementation
+- If you want to combine slices w/o giving them a name you can use the function
+  slices.
 
-Slice uses Scriptjure, Hiccup, and Cssgen.
-
-The body of a slice is threaded with each slice taking another slice as an
-optional first argument to be merged.
-    
 ## TODO
 - Performance
 - Write js and css to files
