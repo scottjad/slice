@@ -2,14 +2,18 @@
 
 Write composable slices of html, css, and js in Clojure.
 
+Not production-ready. I haven't even looked at the output in a browser :)
+
 ## Motivation
 
 I've been writing webapps entirely in Clojure for some time, using scriptjure
 to generate JS, hiccup for HTML, and cssgen for CSS. I was tired though of not
 having all the code for a slice of a webpage in one place. Some of my css was
-in css.clj and my scriptjure in javascript.clj and my html throughout my app. I
-really wanted to have my html, css, and js for a given widget right next to
-each other so they could more easily be composed, reused, modified, and tested.
+in css.clj and my scriptjure in javascript.clj and my html throughout my
+app. If I wanted to add a css class and use it with js I had to change it in at
+least three files (html, css, and js). I really wanted to have my html, css,
+and js for a given widget right next to each other so they could more easily be
+composed, reused, modified, and tested.
 
 ## Usage
 
@@ -17,7 +21,7 @@ See [example.clj](https://github.com/scottjad/slice/blob/master/src/slice/exampl
 
 ## Installation
 
-Search clojars.org for latest version and add it to project.clj or pom.xml
+Search clojars.org for latest version and add it to project.clj or pom.xml.
 
 ## Overview
 
@@ -37,11 +41,11 @@ for other differences.
 
 So the slice above will return a map like :
 
-        {:slice true, 
-         :head ["code for jquery"],
-         :title "Example", 
-         :js ["alert(\"Hi\")"], 
-         :html ["<h1>Bye</h1>"], 
+        {:slice true
+         :head ["code for jquery"]
+         :title ["Example"] 
+         :js ["alert(\"Hi\")"]
+         :html ["<h1>Bye</h1>"]
          :css ...}
 
 The function render will render a slice as an html page with the included js
