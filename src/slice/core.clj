@@ -83,7 +83,6 @@
   "needs better name, comes hiccup, decorates a function"
   [name & fdecl]
   `(do (defn ~name ~@fdecl)
-       ;; TODO keep metadata so M-. goes to old definition
        (alter-var-root (var ~name) add-optional-map-arg)
        (var ~name)))
 

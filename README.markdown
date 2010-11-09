@@ -12,8 +12,8 @@ Search clojars.org for latest version and add it to project.clj or pom.xml
 
 ## Overview
 
-A slice is a function that returns a map with keys [:title :html :css :js :dom
-:head ...]
+A slice is a function that returns a map with keys such as :title, :html, :css,
+:js, :dom, :head, etc.
 
         (slice example
           jquery
@@ -26,14 +26,19 @@ One difference between slices and normal functions is that the return value of
 every form in the body of a slice will be added to the return map. See tricks
 for other differences.
 
-So the slice above will return a map like {:slice true, :head ["code for
-jquery"], :title "Example", :js ["alert(\"Hi\")"], :html ["<h1>Bye</h1>"], :css
-...}.
+So the slice above will return a map like :
+
+        {:slice true, 
+         :head ["code for jquery"],
+         :title "Example", 
+         :js ["alert(\"Hi\")"], 
+         :html ["<h1>Bye</h1>"], 
+         :css ...}
 
 The function render will render a slice as an html page with the included js
 and css.
 
-(render example)
+        (render example)
 
 When a slice uses another slice, the maps are merged. In the example above,
 jquery is a slice that defines where to get jquery and how to add it to a page.
