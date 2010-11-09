@@ -36,8 +36,14 @@ A slice is a function that returns a map with keys such as :title, :html, :css,
           (css (rule "h1" :color :blue)))
 
 One difference between slices and normal functions is that the return value of
-every form in the body of a slice will be added to the return map. See tricks
-for other differences.
+every form in the body of a slice will be added to the map returned. So in the
+example above, none of the forms have side effects but css is not the only form
+included in the map returned.
+
+Another difference is that when defining a slice that doesn't take any args
+like example above the arg list can be ommited. Also when calling slices that
+take no args, like jquery above, they don't need to be enclosed in (). See
+tricks for other differences.
 
 So the slice above will return a map like :
 
