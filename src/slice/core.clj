@@ -14,17 +14,12 @@
 
 (defmacro defs [& args] `(by 2 def ~args))
 
-(defn- cdata-tag
-  "Wrap the supplied javascript or css up in script tags and a CDATA section."
-  [type script]
-  [:script {:type type}
-    (str "//<![CDATA[\n" script "\n//]]>")])
+(defn- javascript-tag [s]
+  [:script {:type "text/javascript"} (str "//<![CDATA[\n" s "\n//]]>")])
 
-(defn- javascript-tag [script]
-  (cdata-tag "text/javascript" script))
-
-(defn- css-tag [script]
-  (cdata-tag "text/css" script))
+(defn- css-tag [s]
+  [:style {:type "text/css"}
+   (str "/*<![CDATA[*/\n" s "\n/*]]>*/")])
 
 (defmacro js
   "Translates code into js and returns {:js [\"translated-code\"]}. Use (clj foo)
@@ -78,19 +73,24 @@
     `(defn ~name ~args (slices ~@body))
     `(defn ~name [] (slices ~args ~@body))))
 
-(defn render [sl]
-  ;; TODO make optional and fix so works > 31 elements where #{} ain't sorted
-  (let [unique #(into #{} %)
-        {:keys [title html css js dom head]} (fslice sl)]
-    (hiccup/html
-     [:html
-      (when (or title head)
-        [:head (when title [:title (apply str (interpose " - " title))])
-         (when head (apply #(hiccup/html %&) head))
-         (when css (css-tag (apply str (unique css))))
-         (when js (javascript-tag (apply str (unique js))))
-         (when dom (javascript-tag (scriptjure/js ($ (fn [] (apply str (unique dom)))))))])
-      (when html [:body (apply #(hiccup/html %&) (unique html))])])))
+(defn render
+  ([sl]
+     ;; TODO make optional and fix so works > 31 elements where #{} ain't sorted
+     ;; TODO reverse in unique was added w/o thinking. perhaps better way
+     (let [{:keys [title html css js dom head]} (fslice sl)]
+       (hiccup/html
+        [:html
+         (when (or title head)
+           [:head (when title [:title (apply str (interpose " - " title))])
+            (when head (apply #(hiccup/html %&) (distinct head)))])
+         [:body
+          (when html (apply #(hiccup/html %&) (distinct html)))
+          (when css (css-tag (apply str (distinct css))))
+          ;; TODO fix ugly interposing ;
+          (when js (javascript-tag (apply str (interpose ";" (distinct js)))))
+          (when dom (javascript-tag (scriptjure/js ($ (fn [] (quote (clj (apply str (interpose ";" (distinct dom))))))))))]])))
+  ([sl & sls]
+     (render (apply slices sl sls))))
 
 (slice jquery [& [version]]
   (head (page-helpers/include-js
@@ -98,6 +98,12 @@
 
 (defn dot [s]
   (str "." s))
+
+(defn id [s]
+  (str "#" s))
+
+(defn no# [s]
+  (and s (.replace s "#" "")))
 
 (defmacro update-html [[name sl] & body]
   `(update-in ~sl [:html] (fn [html#] (let [~name html#] (:html (html ~@body))))))

@@ -1,5 +1,7 @@
 (ns slice.example
   (:use slice.core
+        [compojure core route]
+        ring.adapter.jetty
         hiccup.page-helpers
         hiccup.form-helpers))
 
@@ -30,20 +32,21 @@
   ;; mixins
   rounded-corners* (mixin :-moz-border-radius :5px
                           :-webkit-border-radius :5px)
-  big-text*        (mixin :font-size "200%")
+  big-text*        (mixin :font-size "300%")
   special-button*  (mixin rounded-corners* big-text*))
 
 (slice awesome-effect
   jquery
   (js (fn awesomeEffect [div]
-        (.effect ($ div) "highlight"))))
+        (.fadeOut ($ div))
+        (.fadeIn ($ div)))))
 
 (slice mouse-effect [id]
   awesome-effect
-  (dom (.mouseOver ($ (clj id)) (awesomeEffect (clj id)))))
+  (dom (.mouseover ($ (clj id)) (fn [] (awesomeEffect (clj id))))))
 
 (slice button [id text color]
-  (html (submit-button {:id id :class buttons*} text))
+  (html (submit-button {:id (no# id) :class buttons*} text))
   (css (rule (dot buttons*) rounded-corners*)))
 
 (slice background-img [sel url]
@@ -56,27 +59,31 @@
 (slice special-button [sel]
   (css (rule sel special-button*)))
 
+(slice on-click-alert [id msg]
+  (dom (.click ($ (clj id)) (fn [] (alert (clj msg))))))
+
 (slice download-button
   (special-button download-id*)
-  (img-button download-id* "Download!"  important-color* download-img*))
+  (img-button download-id* "Download!"  important-color* download-img*)
+  (on-click-alert download-id* "Ain't slices cool?"))
 
 (slice subscribe-button
   jquery
-  (dom (.click ($ (clj subscribe-id*))
-               (fn [] (alert (clj (str "Subscribed to " company-name* " newsletter."))))))
+  (on-click-alert subscribe-id* (str "Subscribed to " company-name* " newsletter."))
   (img-button subscribe-id* "Subscribe!" section-color* subscribe-img*))
 
-(slice header [text]
-  (html [:h1 {:class headers*} text]))
+(slice header [text & [id]]
+  (html [:h1 {:class headers* :id (no# id)} text]))
 
-(defn div [sl]
-  (update-html [h (fslice sl)]
-               [:div h]))
+(defn div [sl & [id]]
+  (update-html [h (fslice sl)] [:div {:id (no# id)} h]))
 
 (slice site-header
   (mouse-effect logo-id*)
-  (div (header company-name*))
-  (css (rule logo-id* big-text*))) 
+  (header company-name* logo-id*)
+  (css (rule logo-id*
+         big-text*
+         :color :blue))) 
 
 (slice app-section
   (div (header app-name*))
@@ -88,8 +95,12 @@
   subscribe-button
   app-section)
 
-(render main-page)
+(defroutes app
+  (GET "/" _ (render main-page))
+  (GET "/subscribe" _ (render site-header subscribe-button))
+  (GET "/test" _ (render jquery
+                         (dom (alert "Hi"))
+                         (html [:h1 "Hi"])
+                         (css (rule "h1" :color "blue")))))
 
-;; (defroutes foo
-;;   (GET "/" _ (render main-page))
-;;   (GET "/subscribe" _ (render (slices site-header subscribe-button)))
+;; (run-jetty #'app {:port 8888 :join? false})
