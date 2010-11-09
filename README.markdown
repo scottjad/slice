@@ -38,14 +38,14 @@ A slice is a function that returns a map with keys such as :title, :html, :css,
 One difference between slices and normal functions is that the return value of
 every form in the body of a slice will be added to the map returned. So in the
 example above, none of the forms have side effects but css is not the only form
-included in the map returned.
+included in the map returned. See Implementation.
 
 Another difference is that when defining a slice that doesn't take any args
 like example above the arg list can be ommited. Also when calling slices that
 take no args, like jquery above, they don't need to be enclosed in (). See
-tricks for other differences.
+Tricks for other differences.
 
-So the slice above will return a map like :
+So the slice above defines a function named example that will return a map like:
 
         {:slice true
          :head ["code for jquery"]
@@ -79,6 +79,13 @@ See [example.clj](https://github.com/scottjad/slice/blob/master/src/slice/exampl
 
 - Dependencies will only be included once.
 
+## Implementation
+
+Slice uses Scriptjure, Hiccup, and Cssgen.
+
+The body of a slice is threaded with each slice taking another slice as an
+optional first argument to be merged.
+    
 ## TODO
 - Performance
 - Write js and css to files
