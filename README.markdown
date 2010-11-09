@@ -1,10 +1,19 @@
 # slice
 
-Write composable slices of html, css, and js in Clojure
+Write composable slices of html, css, and js in Clojure.
+
+## Motivation
+
+I've been writing webapps entirely in Clojure for some time, using scriptjure
+to generate JS, hiccup for HTML, and cssgen for CSS. I was tired though of not
+having all the code for a slice of a webpage in one place. Some of my css was
+in css.clj and my scriptjure in javascript.clj and my html throughout my app. I
+really wanted to have my html, css, and js for a given widget right next to
+each other so they could more easily be composed and reused.
 
 ## Usage
 
-See example.clj
+See [example.clj](https://github.com/scottjad/slice/blob/master/src/slice/example.clj)
 
 ## Installation
 
@@ -47,7 +56,7 @@ jquery is a slice that defines where to get jquery and how to add it to a page.
          (head (page-helpers/include-js
                (str "http://ajax.googleapis.com/ajax/libs/jquery/" (or version "1.4.2") "/jquery.min.js"))))
 
-See example.clj for what slices look like in practice.
+See [example.clj](https://github.com/scottjad/slice/blob/master/src/slice/example.clj) for what slices look like in practice.
 
 ## Tricks
 
@@ -59,6 +68,10 @@ See example.clj for what slices look like in practice.
 - You can stack titles
 
 - Dependencies will only be included once.
+
+## TODO
+- Performance
+- Write js and css to files
 
 ## License
 
