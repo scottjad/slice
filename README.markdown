@@ -9,7 +9,7 @@ to generate JS, hiccup for HTML, and cssgen for CSS. I was tired though of not
 having all the code for a slice of a webpage in one place. Some of my css was
 in css.clj and my scriptjure in javascript.clj and my html throughout my app. I
 really wanted to have my html, css, and js for a given widget right next to
-each other so they could more easily be composed and reused.
+each other so they could more easily be composed, reused, modified, and tested.
 
 ## Usage
 
