@@ -87,5 +87,5 @@
 (render main-page)
 
 ;; (defroutes foo
-;;   (GET "/" (render main-page))
-;;   (GET "/subscribe" (render subscribe-button)))
+;;   (GET "/" _ (render main-page))
+;;   (GET "/subscribe" _ (render subscribe-button)))
