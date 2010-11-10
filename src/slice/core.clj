@@ -71,7 +71,8 @@
   [name args & body]
   (if (vector? args)
     `(defn ~name ~args (slices ~@body))
-    `(defn ~name [] (slices ~args ~@body))))
+    `(let [val# (slices ~args ~@body)]
+       (defn ~name [] val#))))
 
 (defn render
   ([sl]

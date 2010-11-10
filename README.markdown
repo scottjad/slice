@@ -2,8 +2,6 @@
 
 Write composable slices of html, css, and js in Clojure.
 
-Not production-ready. I haven't even looked at the output in a browser :)
-
 Slice uses Scriptjure, Hiccup, and Cssgen for the hard stuff.
 
 ## Motivation
@@ -43,9 +41,14 @@ example above, none of the forms have side effects but css is not the only form
 included in the map returned.
 
 Another difference is that when defining a slice that doesn't take any args
-like example above the arg list can be ommited. Also when calling slices that
-take no args, like jquery above, they don't need to be enclosed in (). See
-Tricks for other differences.
+like example above the arg list can be ommited.
+
+**Very Important:** If an arglist is ommited, the slice will be static, with
+the compile-time result being returned when the slice is used. If you want it
+to remain dynamic, include an empty arglist.
+
+Also when calling slices that take no args, like jquery above, they don't need
+to be enclosed in (). See Tricks for other differences.
 
 So the slice above defines a function named example that will return a map like:
 
@@ -85,7 +88,6 @@ See [example.clj](https://github.com/scottjad/slice/blob/master/src/slice/exampl
   slices.
 
 ## TODO
-- Performance
 - Write js and css to files
 
 ## License
