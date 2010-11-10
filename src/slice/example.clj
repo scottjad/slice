@@ -43,7 +43,7 @@
 
 (slice mouse-effect [id]
   awesome-effect
-  (dom (.mouseover ($ (clj id)) (fn [] (awesomeEffect (clj id))))))
+  (dom (.mouseover ($ ~id) (fn [] (awesomeEffect ~id)))))
 
 (slice button [id text color]
   (html (submit-button {:id (no# id) :class buttons*} text))
@@ -60,7 +60,7 @@
   (css (rule sel special-button*)))
 
 (slice on-click-alert [id msg]
-  (dom (.click ($ (clj id)) (fn [] (alert (clj msg))))))
+  (dom (.click ($ ~id) (fn [] (alert ~msg)))))
 
 (slice download-button
   (special-button download-id*)
@@ -103,4 +103,4 @@
                          (html [:h1 "Hi"])
                          (css (rule "h1" :color "blue")))))
 
-;; (run-jetty #'app {:port 8888 :join? false})
+(defonce server (run-jetty #'app {:port 8888 :join? false}))
