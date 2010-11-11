@@ -11,8 +11,8 @@
   app-name*     "Awesome App"
 
   ;; colors
-  site-color*     "blue"
-  section-color*  "green"
+  site-color*      "blue"
+  section-color*   "green"
   important-color* "red"
 
   ;; imgs
@@ -21,8 +21,8 @@
   subscribe-img* "/img/subscribe.png"
 
   ;; ids
-  logo-id*     "#logo"
-  download-id* "#download"
+  logo-id*      "#logo"
+  download-id*  "#download"
   subscribe-id* "#subscribe"
 
   ;; classes
@@ -64,7 +64,7 @@
 
 (slice download-button
   (special-button download-id*)
-  (img-button download-id* "Download!"  important-color* download-img*)
+  (img-button download-id* "Download!" important-color* download-img*)
   (on-click-alert download-id* "Ain't slices cool?"))
 
 (slice subscribe-button
@@ -83,7 +83,11 @@
   (header company-name* logo-id*)
   (css (rule logo-id*
          big-text*
-         :color :blue))) 
+         :color :blue)))
+
+;;; impure slices and slices that use impure slices aren't cached
+(slice ^{:impure true} random-number
+  (html [:p (rand-int 100)]))
 
 (slice app-section
   (div (header app-name*))
@@ -93,14 +97,15 @@
   (title company-name*)
   site-header
   subscribe-button
-  app-section)
+  app-section
+  random-number)
 
 (defroutes app
-  (GET "/" _ (render main-page))
+  (GET "/"          _ (render main-page))
   (GET "/subscribe" _ (render site-header subscribe-button))
-  (GET "/test" _ (render jquery
-                         (dom (alert "Hi"))
-                         (html [:h1 "Hi"])
-                         (css (rule "h1" :color "blue")))))
+  (GET "/test"      r (render jquery
+                              (dom (alert ~(:remote-addr r)))
+                              (html [:h1 "Hi"])
+                              (css (rule "h1" :color "blue")))))
 
 (defonce server (run-jetty #'app {:port 8888 :join? false}))

@@ -1,5 +1,6 @@
 (ns slice.core
-  (:use [clojure.contrib.ns-utils :only (immigrate)])
+  (:use [clojure.contrib.ns-utils :only (immigrate)]
+        [clojure.contrib.def :only (defn-memo)])
   (:require [hiccup.core :as hiccup]
             [hiccup.page-helpers :as page-helpers]
             [com.reasonr.scriptjure :as scriptjure]
@@ -45,53 +46,73 @@
 
 (defmacro head
   [& body]
-  `{:head (seq [~@body])})
+  `{:head (seq ~@body)})
 
 (defn title
   "Add a title to html page"
   [s]
   {:title [s]})
 
-(defn fslice [sl]
+(defn invoke-if-fn
+  "If given a function, call it. Otherwise return what given. For using slices
+  without enclosing ()"
+  [sl]
   (if (fn? sl) (sl) sl))
+
+(defn concat-or [a b]
+  (if (or (coll? a) (coll? b))
+    (concat a b)
+    (or a b)))
+
 
 (defn slices
   "Combine slice parts with concat keeping them as vectors"
   [& maps]
-  (-> (apply merge-with concat
-             (map #(dissoc % :slice)
-                  (map fslice maps)))
-      (assoc :slice true)))
+  (apply merge-with concat-or (map invoke-if-fn maps)))
 
 (defmacro slice
-  "Defines a slice. Slices are functions that have been decorated to take an
-  optional first arg that's a map, and if their arglist is empty it can be
+  "Defines a slice. Slices are functions. If their arglist is empty it can be
   ommited. Their body is merged into a map, so top-level forms in a slice
   should return a map"
   [name args & body]
-  (if (vector? args)
-    `(defn ~name ~args (slices ~@body))
-    `(let [val# (slices ~args ~@body)]
-       (defn ~name [] val#))))
+  (let [body (if (vector? args) body (cons args body))
+        args (if (vector? args) args [])
+        impure? (or (some :impure (map #(meta (if (map? %)
+                                                %
+                                                (if (list? %)
+                                                  (resolve (symbol (first %)))
+                                                  (resolve (symbol %)))))
+                                       body))
+                    (:impure (meta name)))]
+    (if impure?
+      `(let [var# (defn ~name ~args (slices ~@body))]
+         (alter-meta! var# assoc :impure true)
+         var#)
+      (if (= args [])
+        `(let [val# (slices ~@body)]
+           (defn ~name [] val#))
+        `(defn-memo ~name ~args (slices ~@body))))))
 
-(defn render
+(defn-memo render-int
   ([sl]
-     ;; TODO make optional and fix so works > 31 elements where #{} ain't sorted
-     ;; TODO reverse in unique was added w/o thinking. perhaps better way
-     (let [{:keys [title html css js dom head]} (fslice sl)]
+     ;; TODO potential for optimizing by prerendering pure slices. either render could return a function 
+     (let [{:keys [title html css js dom head]} sl]
        (hiccup/html
         [:html
          (when (or title head)
-           [:head (when title [:title (apply str (interpose " - " title))])
+           [:head (when title [:title (apply str (interpose " - " (distinct title)))])
             (when head (apply #(hiccup/html %&) (distinct head)))])
          [:body
           (when html (apply #(hiccup/html %&) (distinct html)))
           (when css (css-tag (apply str (distinct css))))
           ;; TODO fix ugly interposing ;
           (when js (javascript-tag (apply str (interpose ";" (distinct js)))))
-          (when dom (javascript-tag (scriptjure/js ($ (fn [] (quote (clj (apply str (interpose ";" (distinct dom))))))))))]])))
-  ([sl & sls]
-     (render (apply slices sl sls))))
+          (when dom (javascript-tag (scriptjure/js ($ (fn [] (quote (clj (apply str (interpose ";" (distinct dom))))))))))]]))))
+
+(defn render [sl & sls]
+  ;; separate from render-int so slices passed as functions always get invoked
+  ;; looked up in memoized render
+  (render-int (apply slices sl sls)))
 
 (slice jquery [& [version]]
   (head (page-helpers/include-js
