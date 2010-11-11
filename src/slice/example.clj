@@ -1,33 +1,28 @@
 (ns slice.example
   (:use slice.core
-        [compojure core route]
+        compojure.core
         ring.adapter.jetty
-        hiccup.page-helpers
         hiccup.form-helpers))
+
+;; when deploying use
+;; (slice-memoize! true)
 
 (defs
   ;; strings
-  company-name* "Cool Company"
-  app-name*     "Awesome App"
+  company-name*    "Cool Company"
+  app-name*        "Awesome App"
 
   ;; colors
   site-color*      "blue"
-  section-color*   "green"
   important-color* "red"
 
-  ;; imgs
-  logo-img*      "/img/logo.png"
-  download-img*  "/img/download.png"
-  subscribe-img* "/img/subscribe.png"
-
   ;; ids
-  logo-id*      "#logo"
-  download-id*  "#download"
-  subscribe-id* "#subscribe"
+  logo-id*         "#logo"
+  download-id*     "#download"
+  subscribe-id*    "#subscribe"
 
   ;; classes
-  headers* "header"
-  buttons* "button"
+  buttons*         "button"
 
   ;; mixins
   rounded-corners* (mixin :-moz-border-radius :5px
@@ -47,14 +42,7 @@
 
 (slice button [id text color]
   (html (submit-button {:id (no# id) :class buttons*} text))
-  (css (rule (dot buttons*) rounded-corners*)))
-
-(slice background-img [sel url]
-  (css (rule sel :background-img url)))
-
-(slice img-button [id text color url]
-  (button id text color)
-  (background-img id url))
+  (css (rule (dot buttons*) rounded-corners* :color color)))
 
 (slice special-button [sel]
   (css (rule sel special-button*)))
@@ -64,28 +52,28 @@
 
 (slice download-button
   (special-button download-id*)
-  (img-button download-id* "Download!" important-color* download-img*)
+  (button download-id* "Download!" important-color*)
   (on-click-alert download-id* "Ain't slices cool?"))
 
 (slice subscribe-button
   jquery
   (on-click-alert subscribe-id* (str "Subscribed to " company-name* " newsletter."))
-  (img-button subscribe-id* "Subscribe!" section-color* subscribe-img*))
+  (button subscribe-id* "Subscribe!" important-color*))
 
 (slice header [text & [id]]
-  (html [:h1 {:class headers* :id (no# id)} text]))
+  (html [:h1 {:id (no# id)} text]))
 
 (defn div [sl & [id]]
-  (update-html [h (fslice sl)] [:div {:id (no# id)} h]))
+  (update-html [h (to-slice sl)] [:div {:id (no# id)} h]))
 
 (slice site-header
   (mouse-effect logo-id*)
   (header company-name* logo-id*)
   (css (rule logo-id*
          big-text*
-         :color :blue)))
+         :color site-color*)))
 
-;;; impure slices and slices that use impure slices aren't cached
+;;; impure slices and slices that use impure slices aren't memoized
 (slice ^{:impure true} random-number
   (html [:p (rand-int 100)]))
 

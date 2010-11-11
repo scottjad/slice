@@ -74,6 +74,11 @@ Slices are assumed to be pure functions and are memoized as are their
 renderings. If a slice is not pure it needs to be marked with ^{:impure true}
 and it and slices that use it will not be memoized.
 
+Memoization is turned off by default because it interferes with interactive
+development. When deploying use:
+
+       (slice-memoize! true)
+
 ## Tricks
 
 - Slices don't need to have an arg list if they take 0 args.

@@ -9,6 +9,12 @@
 ;; so cssgen's rule and mixin can be used by user w/o use
 (immigrate 'cssgen)
 
+(def *slice-memoize* false)
+
+(defn slice-memoize! [b]
+  (alter-var-root #'*slice-memoize* (constantly b)))
+
+
 ;;; util
 (defmacro by [x fname forms]
   `(do ~@(map (partial cons fname) (partition x forms))))
@@ -53,7 +59,7 @@
   [s]
   {:title [s]})
 
-(defn invoke-if-fn
+(defn to-slice
   "If given a function, call it. Otherwise return what given. For using slices
   without enclosing ()"
   [sl]
@@ -64,11 +70,10 @@
     (concat a b)
     (or a b)))
 
-
 (defn slices
   "Combine slice parts with concat keeping them as vectors"
   [& maps]
-  (apply merge-with concat-or (map invoke-if-fn maps)))
+  (apply merge-with concat-or (map to-slice maps)))
 
 (defmacro slice
   "Defines a slice. Slices are functions. If their arglist is empty it can be
@@ -84,14 +89,16 @@
                                                   (resolve (symbol %)))))
                                        body))
                     (:impure (meta name)))]
-    (if impure?
-      `(let [var# (defn ~name ~args (slices ~@body))]
-         (alter-meta! var# assoc :impure true)
-         var#)
-      (if (= args [])
-        `(let [val# (slices ~@body)]
-           (defn ~name [] val#))
-        `(defn-memo ~name ~args (slices ~@body))))))
+    (if *slice-memoize*
+      (if impure?
+        `(let [var# (defn ~name ~args (slices ~@body))]
+           (alter-meta! var# assoc :impure true)
+           var#)
+        (if (= args [])
+          `(let [val# (slices ~@body)]
+             (defn ~name [] val#))
+          `(defn-memo ~name ~args (slices ~@body))))
+      `(defn ~name ~args (slices ~@body)))))
 
 (defn-memo render-int
   ([sl]
