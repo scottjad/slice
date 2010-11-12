@@ -1,7 +1,12 @@
 (ns slice.compojure
-  (:use [compojure.core]
-        slice.core))
+  (:use slice.core)
+  (:require compojure.response))
 
-(defmethod compojure.response/render java.util.Map [_ m]
-  (let [m (if (:slice m) {:body (render m)} m)]
-    (merge {:status 200, :headers {}, :body ""} m)))
+(if (resolve 'compojure.response/Renderable)
+  (extend-type slice.core.Slice
+    compojure.response/Renderable
+    (render [this _]
+            (compojure.response/render (slice.core/render this) _)))
+  
+  (defmethod compojure.response/render slice.core.Slice [req m]
+    (compojure.response/render req (render m))))

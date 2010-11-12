@@ -46,16 +46,13 @@
   (html (submit-button {:id (no# id) :class buttons*} text))
   (css (rule (dot buttons*) rounded-corners* :color color)))
 
-(slice special-button [sel]
-  (css (rule sel special-button*)))
-
 (slice on-click-alert [id msg]
   (dom (.click ($ ~id) (fn [] (alert ~msg)))))
 
 (slice download-button
-  (special-button download-id*)
-  (button download-id* "Download!" important-color*)
-  (on-click-alert download-id* "Ain't slices cool?"))
+  (on-click-alert download-id* "Ain't slices cool?")
+  (css (rule download-id* special-button*))
+  (button download-id* "Download!" important-color*))
 
 (slice subscribe-button
   jquery
@@ -87,13 +84,12 @@
   app-section
   random-number)
 
-(do (defroutes app
+(defroutes app
       (GET "/"          _ (main-page))
       (GET "/subscribe" _ (slices site-header subscribe-button))
       (GET "/test"      r (slices jquery
                                   (dom (alert ~(:remote-addr r)))
                                   (html [:h1 "Hi"])
                                   (css (rule "h1" :color "blue")))))
-    (wrap! app wrap-render-slice))
 
 (defonce server (run-jetty #'app {:port 8888 :join? false}))

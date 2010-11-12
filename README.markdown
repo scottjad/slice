@@ -25,8 +25,8 @@ Search clojars.org for latest version and add it to project.clj or pom.xml.
 
 ## Overview
 
-A slice is a function that returns a map with keys such as :title, :html, :css,
-:js, :dom, :head, etc.
+A slice is a function that returns Slice record with keys such as :title,
+:html, :css, :js, :dom, :head, etc.
 
         (slice example
           jquery
@@ -36,16 +36,17 @@ A slice is a function that returns a map with keys such as :title, :html, :css,
           (css (rule "h1" :color :blue)))
 
 One difference between slices and normal functions is that the return value of
-every form in the body of a slice will be added to the map returned. So in the
+every form in the body of a slice will be added to the slice returned. So in the
 example above, none of the forms have side effects but css is not the only form
-included in the map returned.
+included in the slice returned.
 
 Another difference is that when defining a slice that doesn't take any args
 like example above the arg list can be ommited. Also when calling slices that
 take no args, like jquery above, they don't need to be enclosed in (). See
 Tricks for other differences.
 
-So the slice above defines a function named example that will return a map like:
+So the slice above defines a function named example that will return a record
+like:
 
         {:slice true
          :head ["code for jquery"]
@@ -59,8 +60,11 @@ and css.
 
         (render example)
 
-When a slice uses another slice, the maps are merged. In the example above,
-jquery is a slice that defines where to get jquery and how to add it to a page.
+To have all slices rendered automatically by compojure just use slice.compojure
+like in the example.
+
+When a slice uses another slice, they are merged. In the example above, jquery
+is a slice that defines where to get jquery and how to add it to a page.
 
        (slice jquery [& [version]]
          (head (page-helpers/include-js

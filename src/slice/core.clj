@@ -29,17 +29,19 @@
 
 (defmacro js* [& body] `(scriptjure/js* ~@body))
 
-(defmacro js [& body] `{:slice true :js (seq [(scriptjure/js ~@body)])})
+(defrecord Slice [])
 
-(defmacro dom [& body] `{:slice true :dom (seq [(scriptjure/js ~@body)])})
+(defmacro js [& body] `(assoc (Slice.) :js (seq [(scriptjure/js ~@body)])))
 
-(defmacro html [& body] `{:slice true :html (seq [(hiccup/html ~@body)])})
+(defmacro dom [& body] `(assoc (Slice.) :dom (seq [(scriptjure/js ~@body)])))
 
-(defmacro css [& body] `{:slice true :css (seq [(cssgen/css ~@body)])})
+(defmacro html [& body] `(assoc (Slice.) :html (seq [(hiccup/html ~@body)])))
 
-(defmacro head [& body] `{:slice true :head (seq ~@body)})
+(defmacro css [& body] `(assoc (Slice.) :css (seq [(cssgen/css ~@body)])))
 
-(defn title [s] {:slice true :title [s]})
+(defmacro head [& body] `(assoc (Slice.) :head (seq ~@body)))
+
+(defn title [s] (assoc (Slice.) :title [s]))
 
 (defn to-slice
   "If given a function, call it. Otherwise return what given. For using slices
@@ -132,14 +134,3 @@
 
 (slice div [id sl]
   (dice [h sl :html] (html [:div {:id (no# id)} h])))
-
-;; Doesn't currently support handlers w/o (). Would need to add multimethod
-;; render to compojure.response
-(defn wrap-render-slice
-  "Wrap an app such that slices are automatically rendered."
-  [app]
-  (fn [req]
-    (let [resp (app req)]
-      (if-not (and (map? resp) (:slice resp))
-        resp
-        (assoc resp :body (render resp))))))
