@@ -3,7 +3,7 @@
 Write composable slices of html, css, and js in Clojure.
 
 Slice uses Scriptjure, Hiccup, and Cssgen for
-translation. http://emailatask.com uses slice.
+translation. [http://emailatask.com](http://emailatask.com) uses slice.
 
 ## Motivation
 
