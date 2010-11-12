@@ -1,5 +1,7 @@
 (ns slice.example
   (:use slice.core
+        slice.compojure
+        uteal.core
         compojure.core
         ring.adapter.jetty
         hiccup.form-helpers))
@@ -63,9 +65,6 @@
 (slice header [text & [id]]
   (html [:h1 {:id (no# id)} text]))
 
-(defn div [sl & [id]]
-  (update-html [h (to-slice sl)] [:div {:id (no# id)} h]))
-
 (slice site-header
   (mouse-effect logo-id*)
   (header company-name* logo-id*)
@@ -78,7 +77,7 @@
   (html [:p (rand-int 100)]))
 
 (slice app-section
-  (div (header app-name*))
+  (header app-name*)
   download-button)
 
 (slice main-page
@@ -88,12 +87,13 @@
   app-section
   random-number)
 
-(defroutes app
-  (GET "/"          _ (render main-page))
-  (GET "/subscribe" _ (render site-header subscribe-button))
-  (GET "/test"      r (render jquery
-                              (dom (alert ~(:remote-addr r)))
-                              (html [:h1 "Hi"])
-                              (css (rule "h1" :color "blue")))))
+(do (defroutes app
+      (GET "/"          _ (main-page))
+      (GET "/subscribe" _ (slices site-header subscribe-button))
+      (GET "/test"      r (slices jquery
+                                  (dom (alert ~(:remote-addr r)))
+                                  (html [:h1 "Hi"])
+                                  (css (rule "h1" :color "blue")))))
+    (wrap! app wrap-render-slice))
 
 (defonce server (run-jetty #'app {:port 8888 :join? false}))

@@ -14,13 +14,6 @@
 (defn slice-memoize! [b]
   (alter-var-root #'*slice-memoize* (constantly b)))
 
-
-;;; util
-(defmacro by [x fname forms]
-  `(do ~@(map (partial cons fname) (partition x forms))))
-
-(defmacro defs [& args] `(by 2 def ~args))
-
 (defn- javascript-tag [s]
   [:script {:type "text/javascript"} (str "//<![CDATA[\n" s "\n//]]>")])
 
@@ -28,36 +21,25 @@
   [:style {:type "text/css"}
    (str "/*<![CDATA[*/\n" s "\n/*]]>*/")])
 
-(defmacro js
-  "Translates code into js and returns {:js [\"translated-code\"]}. Use (clj foo)
-  to include clj code foo in js."
-  [& body]
-  `{:js (seq [(scriptjure/js ~@body)])})
+(defmacro just-html [& body] `(hiccup/html ~@body))
 
-(defmacro dom
-  "Translates code into js that runs after dom is loaded and returns {:dom
-  [\"translated-code\"]}."
-  [& body]
-  `{:dom (seq [(scriptjure/js ~@body)])})
+(defmacro just-js [& body] `(scriptjure/js ~@body))
 
-(defmacro html
-  "Translates code into html and returns {:html [\"translated-code\"]}."
-  [& body]
-  `{:html (seq [(hiccup/html ~@body)])})
+(defmacro just-css [& body] `(cssgen/css ~@body))
 
-(defmacro css
-  "Translates code into css and returns {:css [\"translated-code\"]}."
-  [& body]
-  `{:css (seq [(cssgen/css ~@body)])})
+(defmacro js* [& body] `(scriptjure/js* ~@body))
 
-(defmacro head
-  [& body]
-  `{:head (seq ~@body)})
+(defmacro js [& body] `{:slice true :js (seq [(scriptjure/js ~@body)])})
 
-(defn title
-  "Add a title to html page"
-  [s]
-  {:title [s]})
+(defmacro dom [& body] `{:slice true :dom (seq [(scriptjure/js ~@body)])})
+
+(defmacro html [& body] `{:slice true :html (seq [(hiccup/html ~@body)])})
+
+(defmacro css [& body] `{:slice true :css (seq [(cssgen/css ~@body)])})
+
+(defmacro head [& body] `{:slice true :head (seq ~@body)})
+
+(defn title [s] {:slice true :title [s]})
 
 (defn to-slice
   "If given a function, call it. Otherwise return what given. For using slices
@@ -134,6 +116,30 @@
 (defn no# [s]
   (and s (.replace s "#" "")))
 
-(defmacro update-html [[name sl] & body]
-  `(update-in ~sl [:html] (fn [html#] (let [~name html#] (:html (html ~@body))))))
+(defmacro dice
+  "for advanced merging of slices"
+  [[name sl key & more] & body]
+  `(let [sl# (to-slice ~sl)
+         ~name (~key sl#)]
+     (slices (dissoc sl# ~key)
+             ~(if more
+                `(dice ~more ~@body)
+                `(slices ~@body)))))
 
+(defmacro let-html [[& bindings] & body]
+  `(dice [~@(mapcat #(concat % [:html]) (partition 2 bindings))]
+         ~@body))
+
+(slice div [id sl]
+  (dice [h sl :html] (html [:div {:id (no# id)} h])))
+
+;; Doesn't currently support handlers w/o (). Would need to add multimethod
+;; render to compojure.response
+(defn wrap-render-slice
+  "Wrap an app such that slices are automatically rendered."
+  [app]
+  (fn [req]
+    (let [resp (app req)]
+      (if-not (and (map? resp) (:slice resp))
+        resp
+        (assoc resp :body (render resp))))))

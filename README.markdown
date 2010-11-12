@@ -100,4 +100,4 @@ development. When deploying use:
 
 Copyright (C) 2010 Scott Jaderholm
 
-Distributed under the GNU General Public License v 3.
+Distributed under the GNU Lesser General Public License v 3.0.
