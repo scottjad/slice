@@ -2,7 +2,8 @@
 
 Write composable slices of html, css, and js in Clojure.
 
-Slice uses Scriptjure, Hiccup, and Cssgen for the hard stuff.
+Slice uses Scriptjure, Hiccup, and Cssgen for
+translation. http://emailatask.com uses slice.
 
 ## Motivation
 

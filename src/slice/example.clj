@@ -1,6 +1,6 @@
 (ns slice.example
   (:use slice.core
-        slice.compojure
+        slice.compojure5
         uteal.core
         compojure.core
         ring.adapter.jetty
