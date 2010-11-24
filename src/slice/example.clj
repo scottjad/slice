@@ -27,10 +27,10 @@
   buttons*         "button"
 
   ;; mixins
-  rounded-corners* (mixin :-moz-border-radius :5px
-                          :-webkit-border-radius :5px)
-  big-text*        (mixin :font-size "300%")
-  special-button*  (mixin rounded-corners* big-text*))
+  rounded-corners* (list :-moz-border-radius :5px
+                         :-webkit-border-radius :5px)
+  big-text*        (list :font-size "300%")
+  special-button*  (list rounded-corners* big-text*))
 
 (slice awesome-effect
   jquery
@@ -44,14 +44,14 @@
 
 (slice button [id text color]
   (html (submit-button {:id (wo# id) :class buttons*} text))
-  (css (rule (dot buttons*) rounded-corners* :color color)))
+  (css [(dot buttons*) rounded-corners* :color color]))
 
 (slice on-click-alert [id msg]
   (dom (.click ($ ~id) (fn [] (alert ~msg)))))
 
 (slice download-button
   (on-click-alert download-id* "Ain't slices cool?")
-  (css (rule download-id* special-button*))
+  (css [download-id* special-button*])
   (button download-id* "Download!" important-color*))
 
 (slice subscribe-button
@@ -65,9 +65,9 @@
 (slice site-header
   (mouse-effect logo-id*)
   (header company-name* logo-id*)
-  (css (rule logo-id*
-         big-text*
-         :color site-color*)))
+  (css [logo-id*
+        big-text*
+        :color site-color*]))
 
 ;;; impure slices and slices that use impure slices aren't memoized
 (slice ^{:impure true} random-number
@@ -90,6 +90,6 @@
       (GET "/test"      r (slices jquery
                                   (dom (alert ~(:remote-addr r)))
                                   (html [:h1 "Hi"])
-                                  (css (rule "h1" :color "blue")))))
+                                  (css [:h1 :color "blue"]))))
 
 (defonce server (run-jetty #'app {:port 8888 :join? false}))

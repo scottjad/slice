@@ -4,10 +4,7 @@
   (:require [hiccup.core :as hiccup]
             [hiccup.page-helpers :as page-helpers]
             [com.reasonr.scriptjure :as scriptjure]
-            [cssgen :as cssgen]))
-
-;; so cssgen's rule and mixin can be used by user w/o use
-(immigrate 'cssgen)
+            [gaka.core :as gaka]))
 
 (def *slice-memoize* false)
 
@@ -25,7 +22,7 @@
 
 (defmacro just-js [& body] `(scriptjure/js ~@body))
 
-(defmacro just-css [& body] `(cssgen/css ~@body))
+(defmacro just-css [& body] `(gaka/css ~@body))
 
 (defmacro js* [& body] `(scriptjure/js* ~@body))
 
@@ -40,7 +37,7 @@
 
 (defmacro html [& body] `(assoc (Slice.) :html (seq [(hiccup/html ~@body)])))
 
-(defmacro css [& body] `(assoc (Slice.) :css (seq [(cssgen/css ~@body)])))
+(defmacro css [& body] `(assoc (Slice.) :css (seq [(gaka/css ~@body)])))
 
 (defmacro head [& body] `(assoc (Slice.) :head (seq [(hiccup/html ~@body)])))
 
