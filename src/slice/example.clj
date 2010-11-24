@@ -1,8 +1,8 @@
 (ns slice.example
   (:use slice.core
-        slice.compojure5
-        uteal.core
-        compojure.core
+        slice.compojure5                ; make slices render automatically
+        uteal.core                      ; defs FTW
+        compojure.core                  ; slice isn't tied to a web "framework"
         ring.adapter.jetty
         hiccup.form-helpers))
 
@@ -43,7 +43,7 @@
   (dom (.mouseover ($ ~id) (fn [] (awesomeEffect ~id)))))
 
 (slice button [id text color]
-  (html (submit-button {:id (no# id) :class buttons*} text))
+  (html (submit-button {:id (wo# id) :class buttons*} text))
   (css (rule (dot buttons*) rounded-corners* :color color)))
 
 (slice on-click-alert [id msg]
@@ -60,7 +60,7 @@
   (button subscribe-id* "Subscribe!" important-color*))
 
 (slice header [text & [id]]
-  (html [:h1 {:id (no# id)} text]))
+  (html [:h1 {:id (wo# id)} text]))
 
 (slice site-header
   (mouse-effect logo-id*)

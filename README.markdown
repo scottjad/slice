@@ -26,7 +26,7 @@ Search clojars.org for latest version and add it to project.clj or pom.xml.
 
 ## Overview
 
-A slice is a function that returns Slice record with keys such as :title,
+A slice is a function that returns a Slice record with keys such as :title,
 :html, :css, :js, :dom, :head, etc.
 
         (slice example

@@ -31,6 +31,9 @@
 
 (defrecord Slice [])
 
+(defn slice? [x]
+  (instance? slice.core.Slice x))
+
 (defmacro js [& body] `(assoc (Slice.) :js (seq [(scriptjure/js ~@body)])))
 
 (defmacro dom [& body] `(assoc (Slice.) :dom (seq [(scriptjure/js ~@body)])))
@@ -39,7 +42,7 @@
 
 (defmacro css [& body] `(assoc (Slice.) :css (seq [(cssgen/css ~@body)])))
 
-(defmacro head [& body] `(assoc (Slice.) :head (seq ~@body)))
+(defmacro head [& body] `(assoc (Slice.) :head (seq [(hiccup/html ~@body)])))
 
 (defn title [s] (assoc (Slice.) :title [s]))
 
@@ -57,7 +60,9 @@
 (defn slices
   "Combine slice parts with concat keeping them as vectors"
   [& maps]
-  (apply merge-with concat-or (map to-slice maps)))
+  (reduce #(update-in %1 %2 distinct)
+          (apply merge-with concat-or (map to-slice maps))
+          (map vector [:html :head :title :js :css :dom])))
 
 (defmacro slice
   "Defines a slice. Slices are functions. If their arglist is empty it can be
@@ -66,7 +71,7 @@
   [name args & body]
   (let [body (if (vector? args) body (cons args body))
         args (if (vector? args) args [])
-        impure? (or (some :impure (map #(meta (if (map? %)
+        impure? (or (some :impure (map #(meta (if (slice? %)
                                                 %
                                                 (if (list? %)
                                                   (resolve (symbol (first %)))
@@ -91,14 +96,14 @@
        (hiccup/html
         [:html
          (when (or title head)
-           [:head (when title [:title (apply str (interpose " - " (distinct title)))])
-            (when head (apply #(hiccup/html %&) (distinct head)))])
+           [:head (when title [:title (apply str (interpose " - " title))])
+            (when head (apply #(hiccup/html %&) head))])
          [:body
-          (when html (apply #(hiccup/html %&) (distinct html)))
-          (when css (css-tag (apply str (distinct css))))
+          (when html (apply #(hiccup/html %&) html))
+          (when css (css-tag (apply str css)))
           ;; TODO fix ugly interposing ;
-          (when js (javascript-tag (apply str (interpose ";" (distinct js)))))
-          (when dom (javascript-tag (scriptjure/js ($ (fn [] (quote (clj (apply str (interpose ";" (distinct dom))))))))))]]))))
+          (when js (javascript-tag (apply str (interpose ";" js))))
+          (when dom (javascript-tag (scriptjure/js ($ (fn [] (quote (clj (apply str (interpose ";" dom)))))))))]]))))
 
 (defn render [sl & sls]
   ;; separate from render-int so slices passed as functions always get invoked
@@ -112,11 +117,11 @@
 (defn dot [s]
   (str "." s))
 
-(defn id [s]
-  (str "#" s))
-
-(defn no# [s]
+(defn wo# [s]
   (and s (.replace s "#" "")))
+
+(defn w# [s]
+  (str "#" (wo# s)))
 
 (defmacro dice
   "for advanced merging of slices"
@@ -133,4 +138,4 @@
          ~@body))
 
 (slice div [id sl]
-  (dice [h sl :html] (html [:div {:id (no# id)} h])))
+  (dice [h sl :html] (html [:div {:id (wo# id)} h])))
