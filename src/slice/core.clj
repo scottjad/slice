@@ -111,8 +111,11 @@
   (head (page-helpers/include-js
          (str "http://ajax.googleapis.com/ajax/libs/jquery/" (or version "1.4.2") "/jquery.min.js"))))
 
-(defn dot [s]
-  (str "." s))
+(defn wodot [s]
+  (and s (str (.replace s "." ""))))
+
+(defn wdot [s]
+  (str "." (wodot s)))
 
 (defn wo# [s]
   (and s (.replace s "#" "")))
