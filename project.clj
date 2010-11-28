@@ -1,4 +1,4 @@
-(defproject slice "0.2.0-SNAPSHOT"
+(defproject slice "0.3.0-SNAPSHOT"
   :description "Write composable slices of html, css, and js in Clojure"
   :url "http://github.com/scottjad/slice"
   :dependencies [[org.clojure/clojure "1.2.0"]
