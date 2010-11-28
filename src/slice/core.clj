@@ -37,6 +37,8 @@
 
 (defmacro html [& body] `(assoc (Slice.) :html (seq [(hiccup/html ~@body)])))
 
+(defmacro top [& body] `(assoc (Slice.) :top (seq [(hiccup/html ~@body)])))
+
 (defmacro css [& body] `(assoc (Slice.) :css (seq [(gaka/css ~@body)])))
 
 (defmacro head [& body] `(assoc (Slice.) :head (seq [(hiccup/html ~@body)])))
@@ -57,17 +59,25 @@
 (defn slices
   "Combine slice parts with concat keeping them as vectors"
   [& maps]
-  (reduce #(update-in %1 %2 distinct)
+  ;; all to not get empty slots
+  (reduce (fn [slice key]
+            (if (key slice)
+              (update-in slice [key] distinct)
+              slice))
           (apply merge-with concat-or (map to-slice maps))
-          (map vector [:html :head :title :js :css :dom])))
+          [:html :top :title :head :css :js :dom]))
 
 (defmacro slice
   "Defines a slice. Slices are functions. If their arglist is empty it can be
   ommited. Their body is merged into a map, so top-level forms in a slice
   should return a map"
-  [name args & body]
-  (let [body (if (vector? args) body (cons args body))
-        args (if (vector? args) args [])
+  [name & body]
+  (let [[docstring body] (if (string? (first body))
+                           [(first body) (rest body)]
+                           ["" body])
+        [args body] (if (vector? (first body))
+                      [(first body) (rest body)]
+                      [[] body])
         impure? (or (some :impure (map #(meta (if (slice? %)
                                                 %
                                                 (if (list? %)
@@ -77,30 +87,31 @@
                     (:impure (meta name)))]
     (if *slice-memoize*
       (if impure?
-        `(let [var# (defn ~name ~args (slices ~@body))]
+        `(let [var# (defn ~name ~docstring ~args (slices ~@body))]
            (alter-meta! var# assoc :impure true)
            var#)
         (if (= args [])
           `(let [val# (slices ~@body)]
-             (defn ~name [] val#))
-          `(defn-memo ~name ~args (slices ~@body))))
-      `(defn ~name ~args (slices ~@body)))))
+             (defn ~name ~docstring [] val#))
+          `(defn-memo ~name ~docstring ~args (slices ~@body))))
+      `(defn ~name ~docstring ~args (slices ~@body)))))
 
 (defn-memo render-int
   ([sl]
      ;; TODO potential for optimizing by prerendering pure slices. either render could return a function 
-     (let [{:keys [title html css js dom head]} sl]
+     (let [{:keys [title html top css js dom head]} sl]
        (hiccup/html
         [:html
-         (when (or title head)
-           [:head (when title [:title (apply str (interpose " - " title))])
-            (when head (apply #(hiccup/html %&) head))])
+         (when (or (seq title) (seq head))
+           [:head (when (seq title) [:title (apply str (interpose " - " title))])
+            (when (seq head) (apply #(hiccup/html %&) head))])
          [:body
-          (when html (apply #(hiccup/html %&) html))
-          (when css (css-tag (apply str css)))
+          (when (seq top) (apply #(hiccup/html %&) top))
+          (when (seq html) (apply #(hiccup/html %&) html))
+          (when (seq css) (css-tag (apply str css)))
           ;; TODO fix ugly interposing ;
-          (when js (javascript-tag (apply str (interpose ";" js))))
-          (when dom (javascript-tag (scriptjure/js ($ (fn [] (quote (clj (apply str (interpose ";" dom)))))))))]]))))
+          (when (seq js) (javascript-tag (apply str (interpose ";" js))))
+          (when (seq dom) (javascript-tag (scriptjure/js ($ (fn [] (quote (clj (apply str (interpose ";" dom)))))))))]]))))
 
 (defn render [sl & sls]
   ;; separate from render-int so slices passed as functions always get invoked
