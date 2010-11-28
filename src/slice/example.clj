@@ -44,7 +44,7 @@
 
 (slice button [id text color]
   (html (submit-button {:id (wo# id) :class buttons*} text))
-  (css [(dot buttons*) rounded-corners* :color color]))
+  (css [(wdot buttons*) rounded-corners* :color color]))
 
 (slice on-click-alert [id msg]
   (dom (.click ($ ~id) (fn [] (alert ~msg)))))
