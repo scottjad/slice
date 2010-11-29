@@ -174,3 +174,7 @@
                                    id-or-map
                                    {:id (wo# id)}) h])))
 
+(defn slice-or-html [x]
+  (if (or (instance? Slice x) (fn? x)) ;; we're going to assume functions will return slices
+    x
+    (html x)))
