@@ -21,6 +21,7 @@
   "If given a function, call it. Otherwise return what given. For using slices
   without enclosing ()"
   [sl]
+  {:post (map? %)}
   (if (fn? sl) (sl) sl))
 
 (defn concat-or [a b]
@@ -31,6 +32,7 @@
 (defn slices
   "Combine slice parts with concat keeping them as vectors"
   [& maps]
+  {:pre [(every? map? maps)]}
   ;; all to not get empty slots
   (reduce (fn [slice key]
             (if (key slice)
@@ -74,6 +76,7 @@
 (defn walk-html
   "walk the hiccup datastructure, pulling out slices"
   [& body]
+  {:post [(slice? %)]}
   (let [slice-atom (atom [])
         walk-fn (fn [form]
                   (if (slice? form)
@@ -84,7 +87,8 @@
         post-body (clojure.walk/prewalk walk-fn body)]
     (apply slices (simple-html post-body) @slice-atom)))
 
-(defmacro html [& body] `(walk-html ~@body))
+(defmacro html [& body]
+  `(walk-html ~@body))
 
 (defmacro slice
   "Defines a slice. Slices are functions. If their arglist is empty it can be
@@ -172,7 +176,7 @@
 (slice div [id-or-map sl]
   (dice [h sl :html] (html [:div (if (map? id-or-map)
                                    id-or-map
-                                   {:id (wo# id)}) h])))
+                                   {:id (wo# id-or-map)}) h])))
 
 (defn slice-or-html
   "Utility for combining legacy (hiccup/compojure) code with
@@ -181,4 +185,4 @@
   [x]
   (if (or (slice? x) (fn? x)) ;; we're going to assume functions will return slices
     x
-    (hiccup.core/html x)))
+    (html x)))
