@@ -148,5 +148,8 @@
   `(dice [~@(mapcat #(concat % [:html]) (partition 2 bindings))]
          ~@body))
 
-(slice div [id sl]
-  (dice [h sl :html] (html [:div {:id (wo# id)} h])))
+(slice div [id-or-map sl]
+  (dice [h sl :html] (html [:div (if (map? id-or-map)
+                                   id-or-map
+                                   {:id (wo# id)}) h])))
+
