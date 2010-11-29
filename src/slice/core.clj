@@ -129,7 +129,7 @@
   (str "." (wodot s)))
 
 (defn wo# [s]
-  (and s (.replace s "#" "")))
+  (and s (.replace ^String s "#" "")))
 
 (defn w# [s]
   (str "#" (wo# s)))
