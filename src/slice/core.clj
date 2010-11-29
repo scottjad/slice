@@ -76,7 +76,7 @@
   [& body]
   (let [slice-atom (atom [])
         walk-fn (fn [form]
-                  (if (instance? Slice form)
+                  (if (slice? form)
                     (do
                       (swap! slice-atom conj (dissoc form :html))
                       (:html form))
@@ -174,7 +174,11 @@
                                    id-or-map
                                    {:id (wo# id)}) h])))
 
-(defn slice-or-html [x]
-  (if (or (instance? Slice x) (fn? x)) ;; we're going to assume functions will return slices
+(defn slice-or-html
+  "Utility for combining legacy (hiccup/compojure) code with
+  slices. Assumes returned fns are slices, anything else can be
+  handled by hiccup."
+  [x]
+  (if (or (slice? x) (fn? x)) ;; we're going to assume functions will return slices
     x
-    (html x)))
+    (hiccup.core/html x)))
