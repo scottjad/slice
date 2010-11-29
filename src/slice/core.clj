@@ -32,7 +32,6 @@
 (defn slices
   "Combine slice parts with concat keeping them as vectors"
   [& maps]
-  {:pre [(every? map? maps)]}
   ;; all to not get empty slots
   (reduce (fn [slice key]
             (if (key slice)
