@@ -1,6 +1,7 @@
 (ns slice.core
   (:use [clojure.contrib.ns-utils :only (immigrate)]
         [clojure.contrib.def :only (defn-memo)])
+  (:require [clojure.walk])
   (:require [hiccup.core :as hiccup]
             [hiccup.page-helpers :as page-helpers]
             [com.reasonr.scriptjure :as scriptjure]
@@ -11,39 +12,10 @@
 (defn slice-memoize! [b]
   (alter-var-root #'*slice-memoize* (constantly b)))
 
-(defn- javascript-tag [s]
-  [:script {:type "text/javascript"} (str "//<![CDATA[\n" s "\n//]]>")])
-
-(defn- css-tag [s]
-  [:style {:type "text/css"}
-   (str "/*<![CDATA[*/\n" s "\n/*]]>*/")])
-
-(defmacro just-html [& body] `(hiccup/html ~@body))
-
-(defmacro just-js [& body] `(scriptjure/js ~@body))
-
-(defmacro just-css [& body] `(gaka/css ~@body))
-
-(defmacro js* [& body] `(scriptjure/js* ~@body))
-
 (defrecord Slice [])
 
 (defn slice? [x]
   (instance? slice.core.Slice x))
-
-(defmacro js [& body] `(assoc (Slice.) :js (seq [(scriptjure/js ~@body)])))
-
-(defmacro dom [& body] `(assoc (Slice.) :dom (seq [(scriptjure/js ~@body)])))
-
-(defmacro html [& body] `(assoc (Slice.) :html (seq [(hiccup/html ~@body)])))
-
-(defmacro top [& body] `(assoc (Slice.) :top (seq [(hiccup/html ~@body)])))
-
-(defmacro css [& body] `(assoc (Slice.) :css (seq [(gaka/css ~@body)])))
-
-(defmacro head [& body] `(assoc (Slice.) :head (seq [(hiccup/html ~@body)])))
-
-(defn title [s] (assoc (Slice.) :title [s]))
 
 (defn to-slice
   "If given a function, call it. Otherwise return what given. For using slices
@@ -66,6 +38,53 @@
               slice))
           (apply merge-with concat-or (map to-slice maps))
           [:html :top :title :head :css :js :dom]))
+
+(defn- javascript-tag [s]
+  [:script {:type "text/javascript"} (str "//<![CDATA[\n" s "\n//]]>")])
+
+(defn- css-tag [s]
+  [:style {:type "text/css"}
+   (str "/*<![CDATA[*/\n" s "\n/*]]>*/")])
+
+(defmacro just-html [& body] `(hiccup/html ~@body))
+
+(defmacro just-js [& body] `(scriptjure/js ~@body))
+
+(defmacro just-css [& body] `(gaka/css ~@body))
+
+(defmacro js* [& body] `(scriptjure/js* ~@body))
+
+(defmacro js [& body] `(assoc (Slice.) :js (seq [(scriptjure/js ~@body)])))
+
+(defmacro dom [& body] `(assoc (Slice.) :dom (seq [(scriptjure/js ~@body)])))
+
+(defmacro top [& body] `(assoc (Slice.) :top (seq [(hiccup/html ~@body)])))
+
+(defmacro css [& body] `(assoc (Slice.) :css (seq [(gaka/css ~@body)])))
+
+(defmacro head [& body] `(assoc (Slice.) :head (seq [(hiccup/html ~@body)])))
+
+(defn title [s] (assoc (Slice.) :title [s]))
+
+(defmacro doc-type [type] `(assoc (Slice.) :doctype (page-helpers/doctype ~type)))
+
+(defn simple-html [body]
+  (assoc (Slice.) :html (seq [(hiccup/html body)])))
+
+(defn walk-html
+  "walk the hiccup datastructure, pulling out slices"
+  [& body]
+  (let [slice-atom (atom [])
+        walk-fn (fn [form]
+                  (if (instance? Slice form)
+                    (do
+                      (swap! slice-atom conj (dissoc form :html))
+                      (:html form))
+                    form))
+        post-body (clojure.walk/prewalk walk-fn body)]
+    (apply slices (simple-html post-body) @slice-atom)))
+
+(defmacro html [& body] `(walk-html ~@body))
 
 (defmacro slice
   "Defines a slice. Slices are functions. If their arglist is empty it can be
@@ -99,8 +118,10 @@
 (defn-memo render-int
   ([sl]
      ;; TODO potential for optimizing by prerendering pure slices. either render could return a function 
-     (let [{:keys [title html top css js dom head]} sl]
+     (let [{:keys [title html top css js dom head doctype]} sl]
        (hiccup/html
+        (when doctype
+          doctype)
         [:html
          (when (or (seq title) (seq head))
            [:head (when (seq title) [:title (apply str (interpose " - " title))])
