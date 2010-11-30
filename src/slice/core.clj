@@ -186,3 +186,11 @@
   (if (or (slice? x) (fn? x)) ;; we're going to assume functions will return slices
     x
     (html x)))
+
+(defmacro link-to-js
+  "Returns a link that calls js code.
+Ex: (link-to-js (alert \"foo\") \"alert!\")"
+  [js txt]
+  `(just-html (page-helpers/link-to {"onClick" (just-js ~js)}
+                                    "javascript:void(0)"
+                                    ~txt)))
