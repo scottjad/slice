@@ -71,6 +71,9 @@ is a slice that defines where to get jquery and how to add it to a page.
          (head (page-helpers/include-js
                (str "http://ajax.googleapis.com/ajax/libs/jquery/" (or version "1.4.2") "/jquery.min.js"))))
 
+Slices in the html of another slice are handled automatically. For more complex
+combining of slices see the macro dice.
+
 See [example.clj](https://github.com/scottjad/slice/blob/master/src/slice/example.clj) for what slices look like in practice.
 
 ## Performance
@@ -98,8 +101,14 @@ development. When deploying use:
 - If you want to combine slices w/o giving them a name you can use the function
   slices.
 
+- Since slices are merged like maps including a form that returns nil in a
+  slice is ok.
+
 ## TODO
 - Write js and css to files
+
+## Contributors
+Allen Rohner
 
 ## License
 
