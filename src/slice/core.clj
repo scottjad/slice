@@ -21,7 +21,7 @@
   "If given a function, call it. Otherwise return what given. For using slices
   without enclosing ()"
   [sl]
-  {:post (map? %)}
+  {:post [(or (nil? %) (map? %))]}
   (if (fn? sl) (sl) sl))
 
 (defn concat-or [a b]
@@ -100,12 +100,14 @@
         [args body] (if (vector? (first body))
                       [(first body) (rest body)]
                       [[] body])
-        impure? (or (some :impure (map #(meta (if (slice? %)
-                                                %
-                                                (if (list? %)
-                                                  (resolve (symbol (first %)))
-                                                  (resolve (symbol %)))))
-                                       body))
+        impure? (or (some :impure
+                          (map #(meta (cond (slice? %) %
+                                            (list? %) (resolve
+                                                       (symbol (first %)))
+                                            (symbol? %) (resolve
+                                                         (symbol %))
+                                            :else nil))
+                               body))
                     (:impure (meta name)))]
     (if *slice-memoize*
       (if impure?
