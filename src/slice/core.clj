@@ -121,27 +121,26 @@
       `(defn ~name ~docstring ~args (slices ~@body)))))
 
 (defn-memo render-int
-  ([sl]
-     ;; TODO potential for optimizing by prerendering pure slices. either render could return a function 
-     (let [{:keys [title html top css js dom head doctype]} sl]
-       (hiccup/html
-        (when doctype
-          doctype)
-        [:html
-         (when (or (seq title) (seq head))
-           [:head (when (seq title) [:title (apply str (interpose " - " title))])
-            (when (seq head) (apply #(hiccup/html %&) head))])
-         [:body
-          (when (seq top) (apply #(hiccup/html %&) top))
-          (when (seq html) (apply #(hiccup/html %&) html))
-          (when (seq css) (css-tag (apply str css)))
-          ;; TODO fix ugly interposing ;
-          (when (seq js) (javascript-tag (apply str (interpose ";" js))))
-          (when (seq dom) (javascript-tag (scriptjure/js ($ (fn [] (quote (clj (apply str (interpose ";" dom)))))))))]]))))
+  [sl]
+  (let [{:keys [title html top css js dom head doctype]} sl]
+    (hiccup/html
+     (when doctype
+       doctype)
+     [:html
+      (when (or (seq title) (seq head))
+        [:head (when (seq title) [:title (apply str (interpose " - " title))])
+         (when (seq head) (apply #(hiccup/html %&) head))])
+      [:body
+       (when (seq top) (apply #(hiccup/html %&) top))
+       (when (seq html) (apply #(hiccup/html %&) html))
+       (when (seq css) (css-tag (apply str css)))
+       ;; TODO fix ugly interposing ;
+       (when (seq js) (javascript-tag (apply str (interpose ";" js))))
+       (when (seq dom) (javascript-tag (scriptjure/js ($ (fn [] (quote (clj (apply str (interpose ";" dom)))))))))]])))
 
 (defn render [sl & sls]
   ;; separate from render-int so slices passed as functions always get invoked
-  ;; looked up in memoized render
+  ;; before being looked up in memoized render
   (render-int (apply slices sl sls)))
 
 (slice jquery [& [version]]
