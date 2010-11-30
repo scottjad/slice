@@ -24,7 +24,10 @@
   {:post [(or (nil? %) (map? %))]}
   (if (fn? sl) (sl) sl))
 
-(defn concat-or [a b]
+(defn concat-or
+  "Merging function that combines concats collections and uses or
+  otherwise (presumably booleans)"
+  [a b]
   (if (or (coll? a) (coll? b))
     (concat a b)
     (or a b)))
@@ -138,7 +141,9 @@
        (when (seq js) (javascript-tag (apply str (interpose ";" js))))
        (when (seq dom) (javascript-tag (scriptjure/js ($ (fn [] (quote (clj (apply str (interpose ";" dom)))))))))]])))
 
-(defn render [sl & sls]
+(defn render
+  "Render slices to html"
+  [sl & sls]
   ;; separate from render-int so slices passed as functions always get invoked
   ;; before being looked up in memoized render
   (render-int (apply slices sl sls)))
@@ -169,14 +174,20 @@
                 `(dice ~more ~@body)
                 `(slices ~@body)))))
 
-(defmacro let-html [[& bindings] & body]
+(defmacro let-html
+  "shortcut for dice used before automerging of html of slices was implemented"
+  [[& bindings] & body]
   `(dice [~@(mapcat #(concat % [:html]) (partition 2 bindings))]
          ~@body))
 
-(slice div [id-or-map sl]
-  (dice [h sl :html] (html [:div (if (map? id-or-map)
-                                   id-or-map
-                                   {:id (wo# id-or-map)}) h])))
+(slice div
+  "Returns a slice including slices in a div"
+  [id-or-map & sls]
+  (html (apply vector :div
+               (if (map? id-or-map)
+                 id-or-map
+                 {:id (wo# id-or-map)})
+               sls)))
 
 (defn slice-or-html
   "Utility for combining legacy (hiccup/compojure) code with
