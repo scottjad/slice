@@ -148,10 +148,6 @@
   ;; before being looked up in memoized render
   (render-int (apply slices sl sls)))
 
-(slice jquery [& [version]]
-  (head (page-helpers/include-js
-         (str "http://ajax.googleapis.com/ajax/libs/jquery/" (or version "1.4.2") "/jquery.min.js"))))
-
 (defn wodot [s]
   (and s (str (.replace s "." ""))))
 
