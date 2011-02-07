@@ -21,7 +21,7 @@
   "If given a function, call it. Otherwise return what given. For using slices
   without enclosing ()"
   [sl]
-  {:post [(or (nil? %) (map? %))]}
+  ;; {:post [(or (nil? %) (map? %))]}
   (if (fn? sl) (sl) sl))
 
 (defn concat-or
