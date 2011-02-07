@@ -1,10 +1,11 @@
 (ns slice.example
   (:use slice.core
         slice.compojure5                ; make slices render automatically
+        slice.library                   ; prebuilt slices including jquery
         uteal.core                      ; defs FTW
         compojure.core                  ; slice isn't tied to a web "framework"
         ring.adapter.jetty
-        hiccup.form-helpers))
+        [hiccup form-helpers page-helpers]))
 
 ;; when deploying use
 ;; (slice-memoize! true)
@@ -85,11 +86,11 @@
   random-number)
 
 (defroutes app
-      (GET "/"          _ (main-page))
-      (GET "/subscribe" _ (slices site-header subscribe-button))
-      (GET "/test"      r (slices jquery
-                                  (dom (alert ~(:remote-addr r)))
-                                  (html [:h1 "Hi"])
-                                  (css [:h1 :color "blue"]))))
+  (GET "/"          _       (main-page))
+  (GET "/subscribe" _       (slices site-header subscribe-button))
+  (GET "/test"      request (slices jquery
+                                    (dom (alert ~(:remote-addr request)))
+                                    (html [:h1 "Hi"])
+                                    (css [:h1 :color "blue"]))))
 
 (defonce server (run-jetty #'app {:port 8888 :join? false}))
