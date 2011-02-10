@@ -60,27 +60,28 @@
            (:prefix grid)) "_" n)))
 
 (slice new-grid [& {:keys [container-width max-width number-columns gutter-percent prefix]}]
-  (let [{:as widths :keys [gutter-width]}
-        (dimensions false container-width number-columns gutter-percent)]
-    (apply slices
-           (grid-helper container-width max-width)
-           (map grid-i
-                (iterate inc 1)
-                (column-seq widths number-columns)
-                (repeat gutter-width)
-                (repeat (or prefix "grid")))))
-  {:number-columns number-columns
-   :prefix prefix})
+  (merge (let [{:as widths :keys [gutter-width]}
+               (dimensions false container-width number-columns gutter-percent)]
+           (apply slices
+                  (grid-helper container-width max-width)
+                  (map grid-i
+                       (iterate inc 1)
+                       (column-seq widths number-columns)
+                       (repeat gutter-width)
+                       (repeat (or prefix "grid")))))
+         {:number-columns number-columns
+          :prefix prefix}))
 
 (defmacro defgrid
   "Defines a fn `name` that returns a selector when passed args otherwise
   returns a grid slice."
   [name grid]
   `(let [s# ~grid]
-     (defn ~name [~'& access#]
+     (defn ~name ([~'& access#]
        (if access#
          (apply in s# access#)
-         s#))))
+         s#))
+       {:slice true})))
 
 (defgrid agrid
   (new-grid :prefix "grid" :container-width 960 :number-columns 12 :gutter-percent 0.2))
