@@ -56,11 +56,17 @@
 
 (defmacro just-css [& body] `(gaka/css ~@body))
 
+(def empty-slice-coll (seq [""]))
+
 (defmacro js* [& body] `(scriptjure/js* ~@body))
 
-(defmacro js [& body] `(assoc (Slice.) :js (seq [(scriptjure/js ~@body)])))
+(defmacro js [& body] `(assoc (Slice.) :js (if '~body
+                                             (seq [(scriptjure/js ~@body)])
+                                             empty-slice-coll)))
 
-(defmacro dom [& body] `(assoc (Slice.) :dom (seq [(scriptjure/js ~@body)])))
+(defmacro dom [& body] `(assoc (Slice.) :dom (if '~body
+                                               (seq [(scriptjure/js ~@body)])
+                                               empty-slice-coll)))
 
 (defmacro top [& body] `(assoc (Slice.) :top (seq [(hiccup/html ~@body)])))
 
@@ -68,7 +74,7 @@
 
 (defmacro head [& body] `(assoc (Slice.) :head (seq [(hiccup/html ~@body)])))
 
-(defn title [s] (assoc (Slice.) :title [s]))
+(defn title [& s] (assoc (Slice.) :title (or s empty-slice-coll)))
 
 (defmacro doc-type [type] `(assoc (Slice.) :doctype (page-helpers/doctype ~type)))
 
