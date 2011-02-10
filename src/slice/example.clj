@@ -2,6 +2,7 @@
   (:use slice.core
         slice.compojure5                ; make slices render automatically
         slice.library                   ; prebuilt slices including jquery
+        slice.grid                      ; a grid system (960 included)
         uteal.core                      ; defs FTW
         compojure.core                  ; slice isn't tied to a web "framework"
         ring.adapter.jetty
@@ -91,6 +92,12 @@
   (GET "/test"      request (slices jquery
                                     (dom (alert ~(:remote-addr request)))
                                     (html [:h1 "Hi"])
-                                    (css [:h1 :color "blue"]))))
+                                    (css [:h1 :color "blue"])))
+  (GET "/grid"      _       (slices agrid
+                                    (html [:div.container
+                                           [:h1.grid_6.push_3 "half"]
+                                           [(dot "h1" (agrid 6) (agrid 3 :push)
+                                                "or with compile time bounds
+                                                checks for your grid")])))))
 
 (defonce server (run-jetty #'app {:port 8888 :join? false}))
