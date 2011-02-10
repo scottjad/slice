@@ -12,16 +12,21 @@
 (defn slice-memoize! [b]
   (alter-var-root #'*slice-memoize* (constantly b)))
 
+(defn var-meta [f]
+  (let [mf (meta f)]
+    (meta (ns-resolve (:ns mf) (:name mf)))))
+
 (defrecord Slice [])
 
 (defn slice? [x]
-  (instance? slice.core.Slice x))
+  (or (instance? slice.core.Slice x)
+      (and (fn? x) (:slice (var-meta x)))))
 
 (defn to-slice
   "If given a function, call it. Otherwise return what given. For using slices
   without enclosing ()"
   [sl]
-  ;; {:post [(or (nil? %) (map? %))]}
+  ;; {:post [(or (nil? %) (slice? %))]}
   (if (fn? sl) (sl) sl))
 
 (defn concat-or
@@ -40,7 +45,7 @@
             (if (key slice)
               (update-in slice [key] distinct)
               slice))
-          (apply merge-with concat-or (map to-slice maps))
+          (or (apply merge-with concat-or (map to-slice maps)) (Slice.))
           [:html :top :title :head :css :js :dom]))
 
 (defn- javascript-tag [s]
@@ -87,10 +92,12 @@
   {:post [(slice? %)]}
   (let [slice-atom (atom [])
         walk-fn (fn [form]
+                  ;; (println "form: " form " slice?: " (slice? form))
                   (if (slice? form)
-                    (do
-                      (swap! slice-atom conj (dissoc form :html))
-                      (:html form))
+                    (let [sl (to-slice form)]
+                      (do
+                        (swap! slice-atom conj (dissoc sl :html))
+                        (:html sl)))
                     form))
         post-body (clojure.walk/prewalk walk-fn body)]
     (apply slices (simple-html post-body) @slice-atom)))
@@ -103,6 +110,7 @@
   ommited. Their body is merged into a map, so top-level forms in a slice
   should return a map"
   [name & body]
+  {:pre [(symbol? name)]}
   (let [[docstring body] (if (string? (first body))
                            [(first body) (rest body)]
                            ["" body])
@@ -121,13 +129,16 @@
     (if *slice-memoize*
       (if impure?
         `(let [var# (defn ~name ~docstring ~args (slices ~@body))]
-           (alter-meta! var# assoc :impure true)
+           (alter-meta! var# assoc :impure true :slice true)
            var#)
         (if (= args [])
           `(let [val# (slices ~@body)]
-             (defn ~name ~docstring [] val#))
-          `(defn-memo ~name ~docstring ~args (slices ~@body))))
-      `(defn ~name ~docstring ~args (slices ~@body)))))
+             (defn ~name ~docstring ([] val#) {:slice true}))
+          `(let [var# (defn-memo ~name ~docstring ~args (slices ~@body))]
+             (alter-meta! var# assoc :slice true)
+             var#)))
+      `(defn ~name ~docstring (~args (slices ~@body))
+         {:slice true}))))
 
 (defn-memo render-int
   [sl]
