@@ -94,10 +94,18 @@
                                     (html [:h1 "Hi"])
                                     (css [:h1 :color "blue"])))
   (GET "/grid"      _       (slices agrid
-                                    (html [:div.container
-                                           [:h1.grid_6.push_3 "half"]
-                                           [(dot "h1" (agrid 6) (agrid 3 :push)
-                                                "or with compile time bounds
-                                                checks for your grid")])))))
+				     (html 
+				      ["div.container"
+				       [(dot "div" (agrid 6))
+					"1st column of 6"]
+				       [(dot "div" (agrid 3))
+					"1st column of next 3"]
+				       [(dot "div" (agrid 3) (agrid 1 :pull))
+					"final 3 but back 1"]
+				       ;; ["div.grid_3.pull_6" "text column"]
+				       ["div.grid_6" "1st column of 6"]
+				       ["div.grid_3" "1st column of next 3"]
+				       ["div.grid_3.pull_1" "final 3 but back 1"]
+				       [(dot "div" (agrid 12)) "big box"]]))))
 
 (defonce server (run-jetty #'app {:port 8888 :join? false}))
