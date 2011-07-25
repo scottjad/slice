@@ -5,7 +5,8 @@
   (:require [hiccup.core :as hiccup]
             [hiccup.page-helpers :as page-helpers]
             [com.reasonr.scriptjure :as scriptjure]
-            [gaka.core :as gaka]))
+            [gaka.core :as gaka]
+            [uteal.core :as uteal]))
 
 (def *slice-memoize* false)
 
@@ -169,13 +170,13 @@
   (render-int (apply slices sl sls)))
 
 (defn wodot [s]
-  (and s (str (.replace s "." ""))))
+  (str (uteal/.? s replace "." "")))
 
 (defn wdot [s]
   (str "." (wodot s)))
 
 (defn wo# [s]
-  (and s (.replace ^String s "#" "")))
+  (uteal/.?  ^String s replace "#" ""))
 
 (defn w# [s]
   (str "#" (wo# s)))
