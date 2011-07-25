@@ -50,7 +50,13 @@
   (it "can have css"
     (let [s2 (slices (css [:p :color :blue]))]
       (= (map strip (:css s2)) ["p { color: blue;}"])))
-)
+  (it "can have manifest"
+    (= (render (slices {:manifest "foo"}))
+       "<html manifest=\"foo\"><body></body></html>")))
+
+;; add testing for nil behavior to html/etc
+;; TODO do you want (html nil) to return :html "" keypair or no slice?
+
 ;;; test html/css/js/dom behavior on strings, ints, vectors
 
 ;;; test slices merging

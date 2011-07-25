@@ -146,7 +146,7 @@
     (hiccup/html
      (when doctype
        doctype)
-     [:html
+     [:html (when-let [manifest (:manifest sl)] {:manifest manifest})
       (when (or (seq title) (seq head))
         [:head (when (seq title) [:title (apply str (interpose " - " title))])
          (when (seq head) (apply #(hiccup/html %&) head))])
