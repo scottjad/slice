@@ -106,7 +106,8 @@ development. When deploying use:
 
 ## TODO
 - Write js and css to files
-
+- Add header and cookies slices
+- custom types with rewriting (add-rewriter :caption (fn [t] (enlive/rewrite :caption :title)))
 ## Contributors
 Allen Rohner
 
