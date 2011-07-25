@@ -1,7 +1,7 @@
 (ns slice.grid
   (:use slice.core
         slice.reset
-        uteal.core
+        [uteal.core :only (as-hash wtf)]
         uteal.test))
 
 ;;; grid
@@ -50,7 +50,7 @@
           (list :width container-width))
         :margin :auto]))
 
-(defn in
+(defn in-grid
   "Returns a css class string. `opt` is :push, :pull, :prefix, or :suffix"
   [grid n & [opt]]
   (if (not (<= 0 n (:number-columns grid)))
@@ -79,7 +79,7 @@
   `(let [s# ~grid]
      (defn ~name ([~'& access#]
        (if access#
-         (apply in s# access#)
+         (apply in-grid s# access#)
          s#))
        {:slice true})))
 
