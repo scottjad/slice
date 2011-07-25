@@ -1,6 +1,6 @@
 (ns slice.core
   (:use [clojure.contrib.ns-utils :only (immigrate)]
-        [clojure.contrib.def :only (defn-memo)])
+        [clojure.contrib.def :only (defn-memo defalias)])
   (:require [clojure.walk])
   (:require [hiccup.core :as hiccup]
             [hiccup.page-helpers :as page-helpers]
@@ -60,6 +60,9 @@
 (defmacro just-js [& body] `(scriptjure/js ~@body))
 
 (defmacro just-css [& body] `(gaka/css ~@body))
+(defalias htmlx just-html)
+(defalias jsx just-js)
+(defalias cssx just-css)
 
 (def empty-slice-coll (seq [""]))
 
