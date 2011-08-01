@@ -170,13 +170,13 @@
   (render-int (apply slices sl sls)))
 
 (defn wodot [s]
-  (str (uteal/.? s replace "." "")))
+  (uteal/.? ^String s replace "." ""))
 
 (defn wdot [s]
   (str "." (wodot s)))
 
 (defn wo# [s]
-  (uteal/.?  ^String s replace "#" ""))
+  (uteal/.? ^String s replace "#" ""))
 
 (defn w# [s]
   (str "#" (wo# s)))
