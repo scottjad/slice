@@ -169,17 +169,17 @@
   ;; before being looked up in memoized render
   (render-int (apply slices sl sls)))
 
-(defn wodot [s]
-  (uteal/.? ^String s replace "." ""))
+(defn wodot [& strs]
+  (uteal/.? (apply str (map name strs)) replace "." ""))
 
-(defn wdot [s]
-  (str "." (wodot s)))
+(defn wdot [& strs]
+  (str "." (apply wodot strs)))
 
-(defn wo# [s]
-  (uteal/.? ^String s replace "#" ""))
+(defn wo# [& strs]
+  (uteal/.? (apply str (map name strs)) replace "#" ""))
 
-(defn w# [s]
-  (str "#" (wo# s)))
+(defn w# [& strs]
+  (str "#" (apply wo# strs)))
 
 (defmacro dice
   "for advanced merging of slices"
